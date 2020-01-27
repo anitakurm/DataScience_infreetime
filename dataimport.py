@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Notes for different kinds of data import in Python
-Author: Anita Kurm; code is som solutions to DataCamp.com exercises by Hugo Bowne-Anderson
+Author: Anita Kurm; code is some solutions to DataCamp.com exercises by Hugo Bowne-Anderson
 """
 
 
