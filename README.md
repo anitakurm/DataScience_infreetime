@@ -1,2 +1,2 @@
 # DataScience_infreetime
-Notes from online courses I take to improve my Data Science skills (data import, visualization, analysis in Python)
+Handy notes for quick code snippets for data import, visualization, analysis in Python. Copied from exercises I solved at Datacamp.com
