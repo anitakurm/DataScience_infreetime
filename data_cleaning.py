@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Notes for data cleaning in Python
-Author: Anita Kurm; code is solutions to DataCamp.com exercises by Daniel Chen
+Author: Anita Kurm; code is snippets of solutions to DataCamp.com exercises by Daniel Chen
+Snippets are not meant to make a coherent script together and just aid way-finding of tools for data cleaning
 """
 
 import pandas as pd
@@ -107,3 +108,200 @@ ebola_melt['country'] = ebola_melt['str_split'].str.get(1)
 
 # Print the head of ebola_melt
 print(ebola_melt.head())
+
+
+###--------------------------------------###
+###-----------COMBINING DATA-------------###
+###--------------------------------------###
+
+#-----------Combining rows-----------#
+# Concatenate uber1, uber2, and uber3: row_concat
+row_concat = pd.concat([uber1, uber2, uber3])
+
+
+#-----------Combining columns (axis = 1)-----------#
+# Concatenate ebola_melt and status_country column-wise: ebola_tidy
+ebola_tidy = pd.concat([ebola_melt, status_country], axis = 1)
+
+
+
+#-----------Finding files with matching pattern-----------#
+# Import necessary modules
+import pandas as pd
+import glob 
+
+# Write the pattern: pattern
+pattern = '*.csv'
+
+# Save all filename matches: csv_files
+csv_files = glob.glob(pattern)
+
+# Create an empty list: frames
+frames = []
+
+#  Iterate over csv_files
+for csv in csv_files:
+
+    #  Read csv into a DataFrame: df
+    df = pd.read_csv(csv)
+    
+    # Append df to frames
+    frames.append(df)
+
+# Concatenate frames into a single DataFrame: uber
+uber = pd.concat(frames)
+
+
+#-----------Merging-----------#
+#Merge the site and visited DataFrames on the 'name' column of site and 'site' column of visited
+o2o = pd.merge(left=site, right=visited, left_on='name', right_on='site')
+
+
+
+
+
+###--------------------------------------###
+###-----------CLEANING DATA-------------###
+###--------------------------------------###
+
+
+#-----------Checking info-----------#
+# Print the info of pd dataframe called tips
+print(tips.info())
+
+#-----------Converting-----------#
+# Convert the sex column to type 'category'
+tips.sex = tips.sex.astype('category')
+
+# Convert 'total_bill' to a numeric dtype
+tips['total_bill'] = pd.to_numeric(tips['total_bill'], errors='coerce')
+
+
+
+
+
+#-----------String parsing using regex-----------#
+# Import the regular expression module
+import re
+
+"""Common regex patterns:
+\ - in some cases to escape regex syntax and use symbols literally 
+\d - digits
+\w -  alphanumeric characters
+[A-Z] - any capital letter
+{number of symbols to match} - restrict the number of symbols to be matched
+* - an arbitrary number of symbols
+"""
+
+# Compile the pattern that matches a phone number of the format xxx-xxx-xxxx: prog
+prog = re.compile('\d{3}\-\d{3}\-\d{4}')
+
+# See if the pattern matches
+result = prog.match('123-456-7890')
+print(bool(result))
+
+# See if the pattern matches
+result2 = prog.match('1123-456-7890')
+print(bool(result2))
+
+
+
+# Find the numeric values (\d - for any digit, + for matching the previsous element one or more times (ensures 10 is one number): matches
+matches = re.findall('\d+', 'the recipe calls for 10 strawberries and 1 banana')
+
+# Print the matches
+print(matches)
+
+
+
+# Write the first pattern {number of symbols to match}
+pattern1 = bool(re.match(pattern='\d{3}\-\d{3}\-\d{4}', string='123-456-7890'))
+print(pattern1)
+
+# Write the second pattern (\ to escape regex syntax; * to match an arbirtary number of symbols)
+pattern2 = bool(re.match(pattern='\$\d*\.\d{2}', string='$123.45'))
+print(pattern2)
+
+# Write the third pattern([A-Z] to match any capital letter; \w* to match an arbitrary number of alphanumeric characters)
+pattern3 = bool(re.match(pattern='[A-Z]\w*', string='Australia'))
+print(pattern3)
+
+
+
+
+
+#-----------Custom functions to clean data-----------#
+# Define recode_gender() – just an example
+# you can also use the replace method. You can also convert the column into a categorical type.
+def recode_gender(gender):
+
+    # Return 0 if gender is 'Female'
+    if gender == 'Female':
+        return 0
+    
+    # Return 1 if gender is 'Male'    
+    elif gender == 'Male':
+        return 1
+    
+    # Return np.nan    (import numpy as np beforehand)
+    else:
+        return np.nan
+
+# Apply the function to the sex column
+#apply on axis 0 (default) will apply the function column-wise
+#apply on axis 1 
+tips['recode'] = tips.sex.apply(recode_gender)
+
+# Print the first five rows of tips
+print(tips.head())
+
+
+
+#-----------Lambda functions to clean data-----------#
+# Write the lambda function using replace
+tips['total_dollar_replace'] = tips.total_dollar.apply(lambda x: x.replace('$', ''))
+
+
+#is the same as:
+
+# Write the lambda function using regular expressions
+tips['total_dollar_re'] = tips.total_dollar.apply(lambda x: re.findall('\d+\.\d+', x)[0]) 
+#re.findall gives a list, so [0] is used to get the first element of the list
+
+
+
+
+#-----------Dropping duplicate data-----------#
+# Drop the duplicates from df called tracks: tracks_no_duplicates
+tracks_no_duplicates = tracks.drop_duplicates()
+
+
+
+
+
+#-----------Fillin in missing data-----------#
+# Calculate the mean of the Ozone column: oz_mean
+oz_mean = airquality.Ozone.mean()
+
+# Replace all the missing values in the Ozone column with the mean
+airquality['Ozone'] = airquality['Ozone'].fillna(oz_mean)
+
+# Print the info of airquality
+print(airquality.info())
+
+
+
+
+#-----------Testing the data with asserts----------#
+# Assert that there are no missing values
+#.all() method returns True if all values are True
+#The first .all() method will return a True or False for each column, while the second .all() method will return a single True or False
+assert ebola.notnull().all().all()
+
+# Assert that all values are >= 0
+assert (ebola >= 0).all().all()
+
+#if the assert statements did not throw any errors, 
+# -> you can be sure that there are no missing values in the data and that all values are >= 0
+
+
