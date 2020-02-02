@@ -52,6 +52,42 @@ plt.show()
 
 
 
+
+#---------Several plots-----------#
+# Add first subplot
+plt.subplot(2, 1, 1) 
+
+# Create a histogram of life_expectancy
+gapminder.life_expectancy.plot(kind='hist')
+
+
+# Group gapminder: gapminder_agg
+gapminder_agg = gapminder.groupby('year')['life_expectancy'].mean()
+
+# Print the head of gapminder_agg
+print(gapminder_agg.head())
+
+# Print the tail of gapminder_agg
+print(gapminder_agg.tail())
+
+# Add second subplot
+plt.subplot(2, 1, 2)
+
+# Create a line plot of life expectancy per year
+gapminder_agg.plot()
+
+# Add title and specify axis labels
+plt.title('Life expectancy over the years')
+plt.ylabel('Life expectancy')
+plt.xlabel('Year')
+
+# Display the plots
+plt.tight_layout()
+plt.show()
+
+
+
+
 ###--------------------------------------###
 ###--------------RESHAPING---------------###
 ###--------------------------------------###
@@ -115,7 +151,7 @@ print(ebola_melt.head())
 ###--------------------------------------###
 
 #-----------Combining rows-----------#
-# Concatenate uber1, uber2, and uber3: row_concat
+# Concatenate uber1, uber2, and uber3: row_concat (add rows)
 row_concat = pd.concat([uber1, uber2, uber3])
 
 
@@ -123,6 +159,8 @@ row_concat = pd.concat([uber1, uber2, uber3])
 # Concatenate ebola_melt and status_country column-wise: ebola_tidy
 ebola_tidy = pd.concat([ebola_melt, status_country], axis = 1)
 
+#or concatenate the DataFrames column-wise (add columns)
+gapminder = pd.concat([g1800s, g1900s, g2000s], axis=1)
 
 
 #-----------Finding files with matching pattern-----------#
@@ -191,7 +229,9 @@ import re
 [A-Z] - any capital letter
 {number of symbols to match} - restrict the number of symbols to be matched
 * - an arbitrary number of symbols
-"""
+\s - white space
+A-Za-z - any letter upper or lower case
+""" 
 
 # Compile the pattern that matches a phone number of the format xxx-xxx-xxxx: prog
 prog = re.compile('\d{3}\-\d{3}\-\d{4}')
@@ -227,6 +267,31 @@ pattern3 = bool(re.match(pattern='[A-Z]\w*', string='Australia'))
 print(pattern3)
 
 
+
+#Another case:
+# Create the series of countries: countries
+countries = gapminder.country
+
+# Drop all the duplicates from countries
+countries = countries.drop_duplicates()
+
+# Write the regular expression: pattern
+#The set of lower and upper case letters.
+#Whitespace between words.
+#Periods for any abbreviations
+pattern = '^[A-Za-z*\s*\.\s*A-Za-z]*$'
+
+# Create the Boolean vector: mask
+mask = countries.str.contains(pattern)
+
+# Invert the mask: mask_inverse
+mask_inverse = ~mask
+
+# Subset countries using mask_inverse: invalid_countries
+invalid_countries = countries.loc[mask_inverse]
+
+# Print invalid_countries
+print(invalid_countries)
 
 
 
@@ -303,5 +368,28 @@ assert (ebola >= 0).all().all()
 
 #if the assert statements did not throw any errors, 
 # -> you can be sure that there are no missing values in the data and that all values are >= 0
+
+
+
+#another example of asserting:
+def check_null_or_valid(row_data):
+    """Function that takes a row of data,
+    drops all missing values,
+    and checks if all remaining values are greater than or equal to 0
+    """
+    no_na = row_data.dropna()
+    numeric = pd.to_numeric(no_na)
+    ge0 = numeric >= 0
+    return ge0
+
+# Check whether the first column is 'Life expectancy'
+assert g1800s.columns[0] == 'Life expectancy'
+
+# Check whether the values in the row are valid
+assert g1800s.iloc[:, 1:].apply(check_null_or_valid, axis=1).all().all()
+
+# Check that there is only one instance of each country
+#index 0 of .value_counts() will contain the most frequently occurring value. If this is equal to 1 for the 'Life expectancy' column, then you can be certain that no country appears more than once in the data
+assert g1800s['Life expectancy'].value_counts()[0] == 1
 
 
