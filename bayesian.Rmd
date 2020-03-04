@@ -1,0 +1,54 @@
+---
+title: "bayesian_1"
+author: "Anita Kurm"
+date: "3/4/2020"
+output: html_document
+---
+
+```{r}
+pacman::p_load(tidyverse)
+```
+
+
+```{r}
+u = 2 #light intensity
+sigma_u = 1  #level of noise in the receptor
+v_p = 3 #the mean of its prior expectation
+sigma_p = 1 #variance of its prior expectation
+
+bin_width = 1e-4
+v_range = seq(0.01, 5, by = bin_width)
+```
+
+
+```{r}
+#Compute p_v_u
+prior <- dnorm(v_p, mean=v_range, sd= sigma_p) #v_p and V_range can switch places
+likelihood <- dnorm(v_range^2, mean = u, sd = sigma_u)
+
+
+posterior_prior_to_norm <-  likelihood*prior #posterior
+normalization <- sum(posterior*bin_width)
+p_v_u = posterior_prior_to_norm/normalization
+
+plot(v_range, p_v_u)
+
+d <- tibble(prior, likelihood, p_v_u, v_range)
+
+d <- d %>% 
+  pivot_longer(cols = c("prior", "likelihood", "p_v_u"))
+
+
+ggplot(d, aes(x = v_range, value, color=name))+
+  geom_line()+
+  theme_bw()
+```
+
+```{r}
+#Exercise 2
+
+phi = v_p
+time_unit 
+
+```
+

@@ -1,0 +1,52 @@
+---
+title: "SQL workshop"
+author: "Anita"
+date: "2/6/2020"
+output: html_document
+---
+
+```{r}
+pacman::p_load(DBI, dbplyr, RSQLite, tidyverse, nycflights13, sqldf)
+
+```
+
+
+```{r}
+#Connect
+con <- DBI::dbConnect(RSQLite::SQLite(), dbname = "~/Zotero/zotero.sqlite")
+
+#get table names
+DBI::dbGetQuery(con, "SELECT name FROM sqlite_master WHERE type = 'table';")
+```
+
+
+```{r}
+#get a table
+data1 <- tbl(con, "collectionItems")
+
+#do normal dplyr stuff further
+```
+
+
+
+NYC flights data exercises (group and joings)
+use sqldf::sqldf for this
+```{r}
+nycflights13::flights
+
+#1 
+
+df <-  data.frame(startdate= 3, enddate = 17)
+
+sqldf::sqldf("
+             SELECT * from weather
+             LEFT JOIN df
+             ON weather.day BETWEEN df.startdate AND df.enddate WHERE month = 12")
+
+#num_seats_on_all_flights <- sqldf("SELECT seats, tailnum FROM planes JOIN flights ON planes.tailnum = flights.tailnum")
+
+
+#get number of seats from plane table for every flight in flights table where hour_time has temperature higher than 60 in the weather table)
+
+```
+
