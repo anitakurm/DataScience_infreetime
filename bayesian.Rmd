@@ -13,8 +13,8 @@ pacman::p_load(tidyverse)
 ```{r}
 u = 2 #light intensity
 sigma_u = 1  #level of noise in the receptor
-v_p = 3 #the mean of its prior expectation
-sigma_p = 1 #variance of its prior expectation
+v_p = 3 #the mean of its prior expectation of food size
+sigma_p = 1 #variance of its prior expectation of food size
 
 bin_width = 1e-4
 v_range = seq(0.01, 5, by = bin_width)
@@ -45,10 +45,69 @@ ggplot(d, aes(x = v_range, value, color=name))+
 ```
 
 ```{r}
-#Exercise 2
+#Exercise 2 -> an approximation to what we have seen before
 
-phi = v_p
-time_unit 
+#look for phi that maximizes posterior probability density of the size given light input
+time_unit = 0.01
+n_timepoints = 5/time_unit
+phi_over_time = array(0, c(n_timepoints))
+phi_over_time[1] = v_p #first guess is the prior
+
+for (t in 1:(n_timepoints-1)) {
+  derivative_F_over_phi = ((v_p - phi_over_time[t])/sigma_p) + (((u - phi_over_time[t]^2)/sigma_u)*2*phi_over_time[t]) #goal to climb the gradient
+  phi_over_time[t+1] = phi_over_time[t] + time_unit*derivative_F_over_phi
+}
+
+d_time <- tibble("Phi" = phi_over_time, "Time" = (1:n_timepoints/100))
+
+ggplot(d_time, aes(Time, Phi))+
+  geom_line()+
+  theme_bw()+
+  ylim(-2, 3)
+```
+
+
+```{r}
+#Exercise 3
+
+#----------just for explanation of prediction errors (epsilon)
+phi = 1.6 #for example
+epsilon_p_genereal = (phi - v_p)/sigma_p #prediction error for food size (how the inferred differs from the prior expectations)
+
+epsilon_u_general = (u - phi^2)/sigma_u  #prediction error for light input (how much the light intensity differs from that expected if food size was phi)
+
+
+#-----------actual network
+
+
+time_unit = 0.01
+n_timepoints = 5/time_unit
+
+phi_over_time = array(0, c(n_timepoints))
+epsilon_p = array(0, c(n_timepoints))
+epsilon_u = array(0, c(n_timepoints))
+
+
+phi_over_time[1] = v_p #first guess is the prior
+epsilon_p[1] = 0
+epsilon_u[1] = 0
+
+
+for (t in 1:(n_timepoints-1)) {
+  phi_over_time[t+1] = phi_over_time[t] + time_unit* (epsilon_u[t]*2*phi_over_time[t] - epsilon_p[t])
+  epsilon_p[t+1] = epsilon_p[t] + time_unit*(phi_over_time[t] - v_p - sigma_p*epsilon_p[t])
+  epsilon_u[t+1] = epsilon_u[t] + time_unit*(u - phi_over_time[t]^2 - sigma_u*epsilon_u[t])
+}
+
+data_ex3 <- tibble("Time" = (1:n_timepoints/100), "Phi" = phi_over_time, "Epsilon_p" = epsilon_p, "Epsilon_u" = epsilon_u)
+
+data_ex3_long <- data_ex3 %>% 
+  pivot_longer(cols = c("Phi", "Epsilon_p", "Epsilon_u"))
+
+ggplot(data_ex3_long, aes(Time, value, color=name))+
+  geom_line(aes(linetype=name))+
+  theme_bw()+
+  ylim(-2, 3)
 
 ```
 
