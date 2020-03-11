@@ -1,0 +1,178 @@
+---
+title: "predictive_distribution_updates"
+author: "Anita Kurm"
+date: "3/11/2020"
+output: html_document
+---
+
+```{r}
+pacman::p_load(extrafont, latex2exp, ggplot2)
+loadfonts()
+
+```
+
+We define the function dgp of the  
+N
+P
+  distribution's density by reparameterizing the built-in function dt
+```{r}
+dgp <- function(x, xi1, xi2, nu) {
+    # Mean
+    mu <- xi1
+    # 'Standard deviation'
+    sigma <- sqrt(xi2 - xi1^2)
+    # Degrees of freedom
+    df <- nu + 1
+    # Argument
+    a <- (x - mu)/sigma
+    
+    # Density
+    d <- 1/sigma*dt(a, df)
+    return(d)
+}
+
+```
+  
+
+Theta has two dimensions - mu and tau
+For every xi observation we get a new prob distribution
+```{r}
+#hyperparameter update function
+ud <- function(xi, nu, x, T = identity) {
+    xi <- xi + 1/(1 + nu)*(T(x) - xi)
+    return(xi)
+}
+
+#Tgauss is the sufficient statistics function of the univariate Gaussian with both parameters unknown.
+Tgauss <- function(x) {
+    T <- c(x, x^2)
+    return(T)
+}
+
+# Define parameters of Gaussian sampling distribution
+mux <- 5
+sdx <- 1/4
+# Sample n observations
+n <- 1024
+xs <- rnorm(n, mux, sdx)
+
+# Set hyperparameters to define prior
+xi <- c(0, 1/8)
+nu <- 1
+
+# Hyperparameter update loop
+xis <- xi
+nus <- nu
+
+
+
+```
+
+2D plot
+```{r}
+# Set up plot
+options(repr.plot.width = 9, repr.plot.height = 3)
+p <- ggplot(data.frame(x = c(-2, 7)), aes(x = x))
+
+# Plot prior predictive
+p <- p + stat_function(fun = dgp, args = list(xi1 = xis[1,1], xi2 = xis[1,2], nu = nus[1]), n = 1024, colour = "black")
+
+# Plot some posterior predictives
+m <- c(2, 4, 8, 16, 32, 64, 128, 256, 512, 1024)
+for (i in m) {
+    p <- p + stat_function(fun = dgp, args = list(xi1 = xis[i,1], xi2 = xis[i,2], nu = nus[i]), n = 1024, colour = "grey")
+}
+
+# Plot sampling distribution
+p <- p + stat_function(fun = dnorm, args = list(mean = mux, sd = sdx), n = 1024, colour = "red")
+
+# Appearance
+p <- p + scale_x_continuous(breaks = seq(-2,7,1))
+p <- p + xlab('x') + ylab('p(x)')
+p <- p + theme_light()
+#p <- p + theme(text = element_text(size=10, family="LM Roman 10"))
+#p <- p + theme(axis.title.x = element_text(face="italic"))
+#p <- p + theme(axis.title.y = element_text(face="italic"))
+
+# Make the plot
+p
+```
+
+
+```{r}
+#random 3D plot
+set.seed(417)
+pacman::p_load(plotly, htmlwidgets)
+
+mu <- 
+tau <- 
+prob <- 
+
+
+
+for (i in m) {
+    p <- plot_ly(x = mu, y = dgp(x = xi, xi1 = xis[i,1], xi2 = xis[i,2], nu = nus[i]), z =tau)
+}
+
+p%>% add_surface()
+```
+
+```{r}
+
+  
+# volcano is a numeric matrix that ships with R
+fig <- plot_ly(z = ~prob_matrix) %>% add_surface(
+  contours = list(
+    z = list(
+      show=TRUE,
+      usecolormap=TRUE,
+      highlightcolor="#ff0000",
+      project=list(z=TRUE)
+      )
+    )
+  )
+fig <- fig %>% layout(
+    scene = list(
+      camera=list(
+        eye = list(x=1.87, y=0.88, z=-0.64)
+        )
+      )
+  )
+
+fig
+```
+
+
+```{r}
+#make a function for gaussian gamma distribution
+ggd <- function(mu, tau, xi= c(0, 0.125), nu = 1) {
+  #multiply normal density by gamma density
+    dnorm(mu, xi[1], 1/(nu*tau))*dgamma(tau, (nu+1)/2, rate= nu*(xi[2] - xi[1]^2)/2 )
+}
+
+gdd(0, 16) #this will be the max density <- our
+gdd(0.1,16)
+gdd(0.01, 32)
+
+
+
+ggd(2.5, 0.5, xi = xis[2,], nu = nus[2])
+
+
+for (i in 1:n) {
+    xi <- ud(xi, nu, xs[i], Tgauss)
+    xis <- rbind(xis, xi)
+    nu <- nu + 1
+    nus <- append(nus, nu)
+    dens_val = ggd(x = xi, xi1 = xis[i,1], xi2 = xis[i,2], nu = nus[i])
+    dens_vals = append(dens_vals, dens_val[1])
+}
+
+#we need two parameters for tau and mu
+
+DF <- data.frame(mu = , tau = , dens_vals =gdd values)
+
+prob_matrix = data.matrix(DF)
+
+```
+

@@ -23,12 +23,12 @@ v_range = seq(0.01, 5, by = bin_width)
 
 ```{r}
 #Compute p_v_u
-prior <- dnorm(v_p, mean=v_range, sd= sigma_p) #v_p and V_range can switch places
+prior <- dnorm(v_range, mean=v_p, sd= sigma_p) #v_p and V_range can switch places #dnorm just calculates the density of normal distribution gor given vector of values and their mean and standard de
 likelihood <- dnorm(v_range^2, mean = u, sd = sigma_u)
 
 
-posterior_prior_to_norm <-  likelihood*prior #posterior
-normalization <- sum(posterior*bin_width)
+posterior_prior_to_norm <-  likelihood*prior 
+normalization <- sum(posterior_prior_to_norm*bin_width) #evidence
 p_v_u = posterior_prior_to_norm/normalization
 
 plot(v_range, p_v_u)
